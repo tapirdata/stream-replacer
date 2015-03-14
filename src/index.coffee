@@ -33,7 +33,7 @@ class SingleReplacer extends stream.Transform
           @push hoard.substr 0, match.index
           @push replacement
           @hoard = hoard.slice match.index + match[0].length
-          process.nextTick =>
+          setImmediate =>
             @forward lwm, done
           return
         return
