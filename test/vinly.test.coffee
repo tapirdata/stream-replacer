@@ -8,7 +8,7 @@ expect = chai.expect
 streamReplacer = require '../src'
 repls = require './repls'
 
-fileCount = 1
+fileCount = 2
 
 makeTests = (title, options) ->
 
@@ -31,7 +31,7 @@ makeTests = (title, options) ->
           file: file
           buffer: buffer
 
-      well = vinylFs.src 'fixtures/src/**/eels.*',
+      well = vinylFs.src 'fixtures/src/**/*.*',
         cwd: __dirname
         buffer: options.useBuffer
       well
@@ -41,6 +41,10 @@ makeTests = (title, options) ->
 
     it 'should pass all files', ->
       expect(_.keys tapResults).to.have.length fileCount
+
+    it 'should pass file types unmodified', ->
+      for srcRelative, {file: destFile, buffer: destBuffer} of tapResults
+        expect(destFile.isBuffer()).to.be.equal options.useBuffer
 
     it 'should replace contents in all files', (done) ->
       restCount = fileCount
@@ -52,10 +56,6 @@ makeTests = (title, options) ->
             expect(destBuffer.toString 'utf8').to.be.equal expBuffer.toString 'utf8'
             if --restCount == 0
               done()
-
-    it 'should pass file types unmodified', ->
-      for srcRelative, {file: destFile, buffer: destBuffer} of tapResults
-        expect(destFile.isBuffer()).to.be.equal options.useBuffer
 
 
 describe 'stream-replacer for vinly-stream', ->

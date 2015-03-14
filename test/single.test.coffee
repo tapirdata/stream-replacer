@@ -46,6 +46,8 @@ makeTests = (title, options) ->
      
 describe 'stream-replacer for single stream', ->
 
+  @timeout 10000
+
   makeTests 'with short file, simple replace',
     srcName: 'eels.txt'
     replName: 'simple'

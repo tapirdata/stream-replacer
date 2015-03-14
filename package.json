@@ -25,6 +25,7 @@
   },
   "license": "MIT",
   "dependencies": {
+    "bl": "^0.9.4",
     "lodash": "^3.5.0",
     "readable-stream": "^1.0.33"
   },

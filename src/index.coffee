@@ -2,6 +2,7 @@
 path = require 'path'
 events = require 'events'
 stream = require 'readable-stream'
+BufferList = require 'bl'
 _ = require 'lodash'
 
 class SingleReplacer extends stream.Transform
@@ -18,23 +19,22 @@ class SingleReplacer extends stream.Transform
     @tag = tag
     @pattern = options.pattern
     @asyncReplace = options.asyncReplace
-    @searchLwm = options.seatchLwm or 5
+    @searchLwm = options.seatchLwm or 512
     @hoard = ''
 
   forward: (lwm, done) ->
     hoard = @hoard
-    console.log 'SingleReplacer#forward: hoard.length=%d hoard=%s...', hoard.length, hoard.slice 0, 32
-    console.log 'pattern=', @pattern
+    # console.log 'SingleReplacer#forward: hoard.length=%d hoard=%s...', hoard.length, hoard.slice 0, 32
     if hoard.length > lwm
       match = @pattern.exec hoard
       if match
-        console.log 'SingleReplacer#forward: match[0]=%s match.index=%d', match[0], match.index
+        #console.log 'SingleReplacer#forward: match[0]=%s match.index=%d', match[0], match.index
         @asyncReplace match, @tag, (replacement) =>
-          console.log 'replacement=%s', replacement
           @push hoard.substr 0, match.index
           @push replacement
           @hoard = hoard.slice match.index + match[0].length
-          @forward lwm, done
+          process.nextTick =>
+            @forward lwm, done
           return
         return
       # no match
@@ -77,12 +77,15 @@ class VinylReplacer extends stream.Transform
       file.contents = file.contents.pipe singleReplacer
       next null, file
     else
-      singleReplacer.end file.contents, null, ->
-        buffer = singleReplacer.read()
-        # console.log 'singleReplacer read', buffer.length
+      singleReplacer.end file.contents, null
+      bl = new BufferList (err, buffer) ->
+        if err
+          next err
+          return
         file.contents = buffer
         next null, file
         return
+      singleReplacer.pipe bl
     return  
 
 
