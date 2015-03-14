@@ -1,12 +1,20 @@
 
+exports.search =
+  pattern: /\w+/
+  substitute: (match, tag, cb) ->
+    cb()
+  expectedCounts:
+    'eels.txt': 6
+    'lorem.txt': 47088
+    
 exports.simple =
   pattern: /eels/
-  asyncReplace: (match, tag, cb) ->
+  substitute: (match, tag, cb) ->
     cb 'limuli'
     
 exports.cap =
   pattern: /[a-zA-Z]+/
-  asyncReplace: (match, tag, cb) ->
+  substitute: (match, tag, cb) ->
     original = match[0]
     replacement = original.charAt(0).toUpperCase() + original.slice(1)
     cb replacement

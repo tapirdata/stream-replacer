@@ -1,7 +1,7 @@
 {
-  "name": "stream-hasher",
+  "name": "stream-replacer",
   "version": "0.2.1",
-  "description": "A through-stream that replaces by a Regexp and an async replace function",
+  "description": "A through-stream that replaces by a RegExp and an async replace function",
   "main": "./lib",
   "scripts": {
     "test": "mocha --compilers coffee:coffee-script/register",

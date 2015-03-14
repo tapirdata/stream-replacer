@@ -24,7 +24,7 @@ makeTests = (title, options) ->
       replacer = streamReplacer
         single: true
         pattern: repl.pattern
-        asyncReplace: repl.asyncReplace
+        substitute: repl.substitute
       tapper = vinylTapper
         single: true
         terminate: true
@@ -48,6 +48,14 @@ describe 'stream-replacer for single stream', ->
 
   @timeout 10000
 
+  makeTests 'with short file, search only',
+    srcName: 'eels.txt'
+    replName: 'search'
+
+  makeTests 'with long file, search only',
+    srcName: 'lorem.txt'
+    replName: 'search'
+
   makeTests 'with short file, simple replace',
     srcName: 'eels.txt'
     replName: 'simple'
@@ -63,4 +71,5 @@ describe 'stream-replacer for single stream', ->
   makeTests 'with long file, capitalize replace',
     srcName: 'lorem.txt'
     replName: 'cap'
+
 

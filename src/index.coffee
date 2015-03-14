@@ -7,7 +7,7 @@ _ = require 'lodash'
 
 class SingleReplacer extends stream.Transform
 
-  @optionNames = ['pattern', 'asyncReplace']
+  @optionNames = ['pattern', 'substitute']
 
   constructor: (tag, options) ->
     super options
@@ -18,7 +18,7 @@ class SingleReplacer extends stream.Transform
       options = options or {}
     @tag = tag
     @pattern = options.pattern
-    @asyncReplace = options.asyncReplace
+    @substitute = options.substitute
     @searchLwm = options.seatchLwm or 512
     @hoard = ''
 
@@ -29,10 +29,14 @@ class SingleReplacer extends stream.Transform
       match = @pattern.exec hoard
       if match
         #console.log 'SingleReplacer#forward: match[0]=%s match.index=%d', match[0], match.index
-        @asyncReplace match, @tag, (replacement) =>
-          @push hoard.substr 0, match.index
-          @push replacement
-          @hoard = hoard.slice match.index + match[0].length
+        @substitute match, @tag, (replacement) =>
+          matchLength = match[0].length
+          if replacement?
+            @push hoard.substr 0, match.index
+            @push replacement
+          else  
+            @push hoard.substr 0, match.index + matchLength
+          @hoard = hoard.slice match.index + matchLength
           setImmediate =>
             @forward lwm, done
           return
