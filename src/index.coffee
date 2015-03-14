@@ -19,7 +19,7 @@ class SingleReplacer extends stream.Transform
     @tag = tag
     @pattern = options.pattern
     @substitute = options.substitute
-    @searchLwm = options.seatchLwm or 512
+    @searchLwm = options.searchLwm or 1024
     @hoard = ''
 
   forward: (lwm, done) ->

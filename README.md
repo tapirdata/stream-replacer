@@ -1,9 +1,9 @@
 # stream-replacer [![Build Status](https://secure.travis-ci.org/tapirdata/stream-replacer.png?branch=master)](https://travis-ci.org/tapirdata/stream-replacer) [![Dependency Status](https://david-dm.org/tapirdata/stream-replacer.svg)](https://david-dm.org/tapirdata/stream-replacer) [![devDependency Status](https://david-dm.org/tapirdata/stream-replacer/dev-status.svg)](https://david-dm.org/tapirdata/stream-replacer#info=devDependencies)
-> A transform-stream that performs string replacement on streams.
+> A transform-stream that performs regex search % replace on streams.
 
 ## Features
 
-Works with vinyl-streams in buffer- and stream-mode.
+Works with vinyl-streams in buffer- and stream-mode. Supports async replacement creation.
 
 ## Usage
 
@@ -60,13 +60,12 @@ vinylFs.src(['src/**/*.html'], {buffer: false})
 
 creates a new replacer. Recognized options are:
 
-- `options.pattern` (required): 
-- `options.digestEncoding`: 
-- `options.digestLength`: if supplied, the digest length is limited to this length
-- `options.single`: if true, create a hasher that transforms a single data-stream; if false (default), create a hasher to transform a vinyl-file-stream. In latter case, the following additional options are recognized:
+- `options.pattern` (required): a `RegExp`, the pattern to search for
+- `options.substitute` (required): a `function (match, tag, cb)` that returns the replacement string asynchronously. It takes:
+  - `match`: the match-object, created by `RegExp#exec`
+  - `tag`: a *tag*, created by `tagger` (see below)
+  - `cb`: the callback that returns the replacement string. Call `cb()` to skip replacement.
+- `options.searchLwm`: the search low-water-mark. This is the minimum window size that the search operates on in stream-mode (except on the end of the stream). Set this twice your maximum expected match-length to prevent search misses. (default: 1024)
+- `options.single`: if true, create a raplacer that works on a single data-stream; if false (default), create a replacer that works on a vinyl-file-stream. In latter case, the following additional options are recognized:
   - `options.tagger`: a function that generates the *tag* from the processed vinyl-file. Defaults to a function that returns `file.path`.
-  - `options.rename`: a function that takes the original file name (without extension) and the calculated digest and should a replacement file name. The strings 'postfix' and 'prefix' can be used, too. They expose some standard replacers.
-  - `options.renameFile`: to obtain even finer contol of renaming supply a function that take a viny-file and the digest to directly manipulate the file's path. 
-  - `options.maxSingleSize`: In the special case of an stream-file to be renamed, the digest must me emmitted before the file can be passed forward. Then is value is used to set the `highWaterMark` for processing that file to prevent deadlocking. Default is 16MB.
-
 
