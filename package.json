@@ -30,6 +30,7 @@
     "readable-stream": "^1.0.33"
   },
   "devDependencies": {
+    "bluebird": "^2.9.14",
     "chai": "^2.1.1",
     "coffee-script": "^1.9.1",
     "mocha": "^2.2.1",

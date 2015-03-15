@@ -1,4 +1,5 @@
 'use strict'
+assert = require 'assert'
 path = require 'path'
 events = require 'events'
 stream = require 'readable-stream'
@@ -17,10 +18,29 @@ class SingleReplacer extends stream.Transform
     else    
       options = options or {}
     @tag = tag
+    assert options.pattern instanceof RegExp, 'pattern must be a RegExp'
+    assert typeof options.substitute == 'function', 'substitute must be a function'
     @pattern = options.pattern
     @substitute = options.substitute
     @searchLwm = options.searchLwm or 1024
     @hoard = ''
+
+  _substitute: (match, done) ->
+    result = @substitute match, @tag, (err, replacement) ->
+      if result != undefined
+        done new Error 'callback used after sync return'
+      else   
+        done err, replacement
+      return
+    if typeof result == 'string' or result == null
+      done null, result
+      return
+    if typeof result == 'object' and typeof result.then == 'function'
+      result.then(
+        (replacement) -> done null, replacement
+        (err) -> done err
+      )  
+    return  
 
   forward: (lwm, done) ->
     hoard = @hoard
@@ -29,7 +49,10 @@ class SingleReplacer extends stream.Transform
       match = @pattern.exec hoard
       if match
         #console.log 'SingleReplacer#forward: match[0]=%s match.index=%d', match[0], match.index
-        @substitute match, @tag, (replacement) =>
+        @_substitute match, (err, replacement) =>
+          if err
+            done err
+            return
           matchLength = match[0].length
           if replacement?
             @push hoard.substr 0, match.index

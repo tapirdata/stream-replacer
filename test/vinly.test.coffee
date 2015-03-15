@@ -23,9 +23,9 @@ makeTests = (title, options) ->
       replacer = streamReplacer
         tagger: (file) -> file.relative
         pattern: repl.pattern
-        substitute: (match, tag, replacement) ->
+        substitute: (match, tag, done) ->
           replaceCounts[tag] = (replaceCounts[tag] or 0) + 1
-          repl.substitute match, tag, replacement
+          repl.substitute match, tag, done
 
       tapper = vinylTapper
         provideBuffer: true
@@ -59,7 +59,7 @@ makeTests = (title, options) ->
     it 'should replace contents in all files', (done) ->
       restCount = fileCount
       for srcRelative, {file: destFile, buffer: destBuffer} of tapResults
-        expPath = path.join __dirname, 'fixtures/exp-' + options.replName, srcRelative
+        expPath = path.join __dirname, 'fixtures', repl.expDir, srcRelative
         do (expPath, destBuffer) ->
           fs.readFile expPath, (err, expBuffer) ->
             expect(destBuffer.length).to.be.equal expBuffer.length

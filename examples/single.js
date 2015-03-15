@@ -4,8 +4,8 @@ var streamReplacer = require('stream-replacer');
 var replacer = streamReplacer({
   single: true,
   pattern: /("license": *")\w+(")/,
-  substitute: function(match, tag, cb) {
-    cb(match[1] + 'WTFPL' + match[2]);
+  substitute: function(match, tag, done) {
+    done(null, match[1] + 'WTFPL' + match[2]);
   }
 });
 
