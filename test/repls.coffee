@@ -13,6 +13,12 @@ exports.badSubstitute =
   expDir: 'exp-simple'  
   fails: Error
 
+exports.noop =
+  expectedCounts:
+    'eels.txt': 0
+    'lorem.txt': 0
+  expDir: 'src'  
+
 exports.search =
   pattern: /\w+/
   substitute: (match, tag, done) ->
@@ -47,6 +53,14 @@ exports.simplePromise =
   pattern: /eels/
   substitute: ->
     Promise.resolve 'limuli'
+  expDir: 'exp-simple'  
+
+exports.simpleOptioner =
+  pattern: 'invalid'
+  optioner: (file) ->
+    pattern: /eels/
+    substitute: (match, tag, done) ->
+      done null, 'limuli'
   expDir: 'exp-simple'  
 
 exports.failSubstitute =

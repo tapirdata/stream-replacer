@@ -43,7 +43,7 @@ var replacer = streamReplacer({
   pattern: /(src\s*=\s*)(["'])([\w\/-_]*\/)(\w+)(\.\w+)\2/,
   // prepend digest to basename
   substitute: function(match, tag, done) {
-    asyncDigest (function (digest) {
+    asyncDigest(function (digest) {
       done(null,
         match[1] + match[2] + match[3] + match[4]
         + '-' + digest + match[5] + match[2]
@@ -64,13 +64,14 @@ vinylFs.src(['src/**/*.html'], {buffer: false})
 
 creates a new replacer. Recognized options are:
 
-- `options.pattern` (required): a `RegExp`, the pattern to search for
-- `options.substitute` (required): a `function (match, tag, done)` that returns the replacement string asynchronously. It takes:
+- `options.pattern`: a `RegExp`, the pattern to search for
+- `options.substitute` (required if `pattern` is specified): a `function (match, tag, done)` that returns the replacement string asynchronously. It takes:
   - `match`: the match-object, created by `RegExp#exec`
   - `tag`: a *tag*, created by `tagger` (see below)
   - `done`: the callback to return error and replacement string: `done(null, replacement)`. Call `done()` to skip replacement.
-  Alternatively `substitute` may just return a replacement string synchronously (or `null` to skip) or a promise that resolves to a string or `null`.
-- `options.searchLwm`: the search low-water-mark. This is the minimum window size that the search operates on in stream-mode (except on the end of the stream). Set this twice your maximum expected match-length to prevent search misses. (default: 1024)
-- `options.single`: if true, create a raplacer that works on a single data-stream; if false (default), create a replacer that works on a vinyl-file-stream. In latter case, the following additional options are recognized:
-  - `options.tagger`: a function that generates the *tag* from the processed vinyl-file. Defaults to a function that returns `file.path`.
+  Alternatively `substitute` may just return a replacement string synchronously (or `null` to skip) or a promise that resolves to a string or to `null`.
+- `options.searchLwm`: the search low-water-mark. This is the minimum window size that the search operates on in stream-mode (except on the end of the stream). Set this twice your maximum expected match-length to prevent search misses (default: 1024).
+- `options.single`: if true, create a replacer that works on a single data-stream; if false (default), create a replacer that works on a vinyl-file-stream. In latter case, the following additional options are recognized:
+  - `options.tagger`: a `function(file)` that generates the *tag* from the processed vinyl-file. Defaults to a function that returns `file.path`.
+  - `options.optioner`: a `function(file)` that generates an object to overwrite options per vinyl-file
 

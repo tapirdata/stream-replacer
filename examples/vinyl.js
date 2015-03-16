@@ -11,7 +11,7 @@ var replacer = streamReplacer({
   pattern: /(src\s*=\s*)(["'])([\w\/-_]*\/)(\w+)(\.\w+)\2/,
   // prepend digest to basename
   substitute: function(match, tag, done) {
-    asyncDigest (function (digest) {
+    asyncDigest(function (digest) {
       done(null, 
         match[1] + match[2] + match[3] + match[4]
         + '-' + digest + match[5] + match[2]

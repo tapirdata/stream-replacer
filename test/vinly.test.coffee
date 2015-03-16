@@ -26,6 +26,7 @@ makeTests = (title, options) ->
         substitute: (match, tag, done) ->
           replaceCounts[tag] = (replaceCounts[tag] or 0) + 1
           repl.substitute match, tag, done
+        optioner: repl.optioner
 
       tapper = vinylTapper
         provideBuffer: true
@@ -53,7 +54,7 @@ makeTests = (title, options) ->
     if repl.expectedCounts
       it 'should find it the correct number of times', ->
         for tag, expectedCount of repl.expectedCounts
-          expect(replaceCounts[tag]).to.be.equal expectedCount
+          expect(replaceCounts[tag] or 0).to.be.equal expectedCount
 
 
     it 'should replace contents in all files', (done) ->
@@ -72,6 +73,14 @@ describe 'stream-replacer for vinly-stream', ->
 
   @timeout 10000
 
+  makeTests 'with buffer-files, noop',
+    useBuffer: true
+    replName: 'noop'
+
+  makeTests 'with stream-files, noop',
+    useBuffer: false
+    replName: 'noop'
+
   makeTests 'with buffer-files, simple replace',
     useBuffer: true
     replName: 'simple'
@@ -86,6 +95,18 @@ describe 'stream-replacer for vinly-stream', ->
 
   makeTests 'with stream-files, search only',
     useBuffer: false
+    replName: 'search'
+
+  makeTests 'with buffer-files, simple replace, use optioner',
+    useBuffer: true
+    replName: 'simpleOptioner'
+
+  makeTests 'with stream-files, simple replace, use optioner',
+    useBuffer: false
+    replName: 'simpleOptioner'
+
+  makeTests 'with buffer-files, search only',
+    useBuffer: true
     replName: 'search'
 
   makeTests 'with buffer-files, capitalize replace',

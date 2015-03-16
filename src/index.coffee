@@ -18,8 +18,9 @@ class SingleReplacer extends stream.Transform
     else    
       options = options or {}
     @tag = tag
-    assert options.pattern instanceof RegExp, 'pattern must be a RegExp'
-    assert typeof options.substitute == 'function', 'substitute must be a function'
+    if options.pattern?
+      assert options.pattern instanceof RegExp, 'pattern must be a RegExp'
+      assert typeof options.substitute == 'function', 'substitute must be a function'
     @pattern = options.pattern
     @substitute = options.substitute
     @searchLwm = options.searchLwm or 1024
@@ -72,8 +73,11 @@ class SingleReplacer extends stream.Transform
     return
 
   _transform: (chunk, enc, next) ->
-    @hoard = @hoard + String chunk, enc
-    @forward @searchLwm, next
+    if @pattern?
+      @hoard = @hoard + String chunk, enc
+      @forward @searchLwm, next
+    else  
+      next null, chunk
     return
 
   _flush: (next) ->
@@ -89,17 +93,24 @@ class VinylReplacer extends stream.Transform
     super objectMode: true
     options = options or {}
     @tagger = options.tagger or (file) -> file.path
+    @optioner = options.optioner
     @singleOptions = @createSingleOptions options
 
   createSingleOptions: (options) ->
     sopt = _.pick options, @constructor.SingleClass.optionNames
     sopt
 
-  createSingleReplacer: (tag) ->
-    new @constructor.SingleClass tag, @singleOptions
+  createSingleReplacer: (file) ->
+    tag = @tagger file
+    options = @singleOptions
+    if @optioner
+      extraOptions = @optioner(file)
+      if extraOptions?
+        options = _.merge {}, options, extraOptions
+    new @constructor.SingleClass tag, options
 
   _transform: (file, enc, next) ->
-    singleReplacer = @createSingleReplacer @tagger file
+    singleReplacer = @createSingleReplacer file
     if file.isStream()
       file.contents = file.contents.pipe singleReplacer
       next null, file
