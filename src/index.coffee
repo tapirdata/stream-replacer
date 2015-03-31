@@ -97,8 +97,7 @@ class VinylReplacer extends stream.Transform
     @singleOptions = @createSingleOptions options
 
   createSingleOptions: (options) ->
-    sopt = _.pick options, @constructor.SingleClass.optionNames
-    sopt
+    _.pick options, @constructor.SingleClass.optionNames
 
   createSingleReplacer: (file) ->
     tag = @tagger file
