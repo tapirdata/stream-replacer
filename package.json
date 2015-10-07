@@ -25,16 +25,16 @@
   },
   "license": "MIT",
   "dependencies": {
-    "bl": "^0.9.4",
+    "bl": "^1.0.0",
     "lodash": "^3.5.0",
-    "readable-stream": "^1.0.33"
+    "readable-stream": "^2.0.2"
   },
   "devDependencies": {
     "bluebird": "^2.9.14",
-    "chai": "^2.1.1",
+    "chai": "^3.3.0",
     "coffee-script": "^1.9.1",
     "mocha": "^2.2.1",
-    "vinyl-fs": "^1.0.0",
-    "vinyl-tapper": "^0.2.5"
+    "vinyl-fs": "^2.1.1",
+    "vinyl-tapper": "^0.2.6"
   }
 }
