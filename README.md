@@ -1,4 +1,10 @@
-# stream-replacer [![Build Status](https://secure.travis-ci.org/tapirdata/stream-replacer.png?branch=master)](https://travis-ci.org/tapirdata/stream-replacer) [![Dependency Status](https://david-dm.org/tapirdata/stream-replacer.svg)](https://david-dm.org/tapirdata/stream-replacer) [![devDependency Status](https://david-dm.org/tapirdata/stream-replacer/dev-status.svg)](https://david-dm.org/tapirdata/stream-replacer#info=devDependencies)
+# stream-replacer
+
+[![npm version](https://img.shields.io/npm/v/stream-replacer.svg?style=flat-square)](https://www.npmjs.com/package/stream-replacer)
+[![Build Status](https://secure.travis-ci.org/tapirdata/stream-replacer.png?branch=master)](https://travis-ci.org/tapirdata/stream-replacer)
+[![Dependency Status](https://david-dm.org/tapirdata/stream-replacer.svg)](https://david-dm.org/tapirdata/stream-replacer)
+[![devDependency Status](https://david-dm.org/tapirdata/stream-replacer/dev-status.svg)](https://david-dm.org/tapirdata/stream-replacer#info=devDependencies)
+
 > A transform-stream that performs regexp search & replace on streams.
 
 ## Features
@@ -10,10 +16,10 @@ Works with vinyl-streams in buffer- and stream-mode. Supports asynchronous repla
 ### Single Data Stream
 
 ``` js
-var fs = require('fs');
-var streamReplacer = require('stream-replacer');
+import fs from 'fs';
+import streamReplacer from 'stream-replacer';
 
-var replacer = streamReplacer({
+const replacer = streamReplacer({
   single: true,
   pattern: /("license": *")\w+(")/,
   substitute: function(match, tag, done) {
@@ -30,15 +36,15 @@ fs.createReadStream('package.json')
 ### Vinyl File Stream
 
 ``` js
-var vinylFs = require('vinyl-fs');
-var streamReplacer = require('stream-replacer');
+import vinylFs from 'vinyl-fs';
+import streamReplacer from 'stream-replacer';
 
 function asyncDigest(cb) {
   // do some mysterious calculations
   cb('12bf4d');
 }
 
-var replacer = streamReplacer({
+const replacer = streamReplacer({
   // find some path reference
   pattern: /(src\s*=\s*)(["'])([\w\/-_]*\/)(\w+)(\.\w+)\2/,
   // prepend digest to basename
@@ -49,18 +55,19 @@ var replacer = streamReplacer({
         + '-' + digest + match[5] + match[2]
       );
     });
-  }  
+  }
 });
 
 vinylFs.src(['src/**/*.html'], {buffer: false})
-// works with 'buffer: true', too 
+// works with 'buffer: true', too
   .pipe(replacer)
   .pipe(vinylFs.dest('dist'));
+
 ```
 
 ## API
 
-#### var replacer = streamReplacer(options);
+#### const replacer = streamReplacer(options);
 
 Creates a new replacer. Recognized options are:
 
