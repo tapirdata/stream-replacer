@@ -1,4 +1,3 @@
-import Promise from 'bluebird';
 
 export let badPattern = {
   pattern: 'eels',
