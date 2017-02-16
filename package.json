@@ -1,6 +1,6 @@
 {
   "name": "stream-replacer",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A through-stream that replaces by a RegExp and an async replace function",
   "main": "./lib",
   "scripts": {
