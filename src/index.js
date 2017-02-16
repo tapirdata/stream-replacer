@@ -11,7 +11,7 @@ class SingleReplacer extends stream.Transform {
     super(options);
     if (typeof tag === 'object') {
       options = tag;
-      ({ tag } = options);
+      tag = options.tag;
     } else {    
       options = options || {};
     }
@@ -33,8 +33,7 @@ class SingleReplacer extends stream.Transform {
       } else {   
         done(err, replacement);
       }
-    }
-    );
+    });
     if (typeof result === 'string' || result === null) {
       done(null, result);
       return;
@@ -49,11 +48,9 @@ class SingleReplacer extends stream.Transform {
 
   forward(lwm, done) {
     let { hoard } = this;
-    // console.log 'SingleReplacer#forward: hoard.length=%d hoard=%s...', hoard.length, hoard.slice 0, 32
     if (hoard.length > lwm) {
       let match = this.pattern.exec(hoard);
       if (match) {
-        //console.log 'SingleReplacer#forward: match[0]=%s match.index=%d', match[0], match.index
         this._substitute(match, (err, replacement) => {
           if (err) {
             done(err);
@@ -69,10 +66,8 @@ class SingleReplacer extends stream.Transform {
           this.hoard = hoard.slice(match.index + matchLength);
           setImmediate(() => {
             return this.forward(lwm, done);
-          }
-          );
-        }
-        );
+          });
+        });
         return;
       }
       // no match
@@ -151,7 +146,7 @@ class VinylReplacer extends stream.Transform {
 VinylReplacer.SingleClass = SingleReplacer;
 
 
-let factory = function(options) {
+function factory(options) {
   if (options && options.single) {
     return new SingleReplacer(options);
   } else {  
