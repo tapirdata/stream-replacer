@@ -19,3 +19,4 @@ const factory = ((options) => {
 factory.SingleReplacer = SingleReplacer
 factory.VinylReplacer = VinylReplacer
 export default factory
+export { ReplacerOptions }
