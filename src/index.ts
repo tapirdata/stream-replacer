@@ -4,8 +4,8 @@ import { VinylReplacer } from "./vinylReplacer"
 
 export interface Factory {
   (options: ReplacerOptions): SingleReplacer | VinylReplacer,
-  SingleReplacer: any
-  VinylReplacer: any
+  SingleReplacer: typeof SingleReplacer
+  VinylReplacer: typeof VinylReplacer
 }
 
 const factory = ((options) => {
@@ -16,7 +16,7 @@ const factory = ((options) => {
   }
 }) as Factory
 
-factory.SingleReplacer = SingleReplacer
-factory.VinylReplacer = VinylReplacer
+factory.SingleReplacer = SingleReplacer // legaxy
+factory.VinylReplacer = VinylReplacer // legaxy
 export default factory
-export { ReplacerOptions }
+export { ReplacerOptions, SingleReplacer, VinylReplacer }
