@@ -1,7 +1,7 @@
-import stream = require("stream")
-import File = require("vinyl")
 import BufferList = require( "bl")
 import _ = require( "lodash")
+import stream = require("stream")
+import File = require("vinyl")
 
 import { Cb, ReplacerOptions, Tagger } from "./options"
 import { SingleReplacer } from "./singleReplacer"

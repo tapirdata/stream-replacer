@@ -1,9 +1,9 @@
+import { expect } from "chai"
 import fs = require("fs")
+import _ = require("lodash")
 import path = require("path")
 import File = require( "vinyl")
-import _ = require("lodash")
 import vinylFs = require("vinyl-fs")
-import { expect } from "chai"
 
 import vinylTapper from "vinyl-tapper"
 import streamReplacer from "../src"

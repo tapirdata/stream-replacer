@@ -1,5 +1,5 @@
-import stream = require("stream")
 import assert = require("assert")
+import stream = require("stream")
 
 import { Cb, ReplacerOptions, Substitute } from "./options"
 
