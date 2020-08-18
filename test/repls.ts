@@ -1,4 +1,4 @@
-import File = require( "vinyl")
+import * as File from "vinyl"
 import { Cb } from "../src/options"
 
 export let badPattern = {

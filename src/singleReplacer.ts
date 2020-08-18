@@ -1,9 +1,9 @@
-import assert = require("assert")
-import stream = require("stream")
+import * as assert from "assert"
+import { Transform } from "stream"
 
 import { Cb, ReplacerOptions, Substitute } from "./options"
 
-export class SingleReplacer extends stream.Transform {
+export class SingleReplacer extends Transform {
 
   protected tag: string
   protected pattern?: RegExp
@@ -92,7 +92,7 @@ export class SingleReplacer extends stream.Transform {
     done()
   }
 
-  protected _flush(next: Cb) {
+  _flush(next: Cb) {
     return this.forward(0, next)
   }
 }

@@ -1,12 +1,12 @@
-import BufferList = require( "bl")
-import _ = require( "lodash")
-import stream = require("stream")
-import File = require("vinyl")
+import BufferList = require("bl")
+import * as _ from "lodash"
+import { Transform } from "stream"
+import * as File from "vinyl"
 
 import { Cb, ReplacerOptions, Tagger } from "./options"
 import { SingleReplacer } from "./singleReplacer"
 
-export class VinylReplacer extends stream.Transform {
+export class VinylReplacer extends Transform {
 
   protected tagger: Tagger
   protected optioner?: (file: File) => any
