@@ -1,9 +1,6 @@
 # stream-replacer
 
 [![npm version](https://img.shields.io/npm/v/stream-replacer.svg?style=flat-square)](https://www.npmjs.com/package/stream-replacer)
-[![Build Status](https://secure.travis-ci.org/tapirdata/stream-replacer.png?branch=master)](https://travis-ci.org/tapirdata/stream-replacer)
-[![Dependency Status](https://david-dm.org/tapirdata/stream-replacer.svg)](https://david-dm.org/tapirdata/stream-replacer)
-[![devDependency Status](https://david-dm.org/tapirdata/stream-replacer/dev-status.svg)](https://david-dm.org/tapirdata/stream-replacer#info=devDependencies)
 
 > A transform-stream that performs regexp search & replace on streams.
 
