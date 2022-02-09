@@ -1,7 +1,7 @@
-import BufferList = require('bl');
-import * as _ from 'lodash';
 import { Transform, TransformCallback } from 'stream';
-import * as File from 'vinyl';
+import BufferListStream from 'bl';
+import File from 'vinyl';
+import _ from 'lodash';
 
 import { Optioner, ReplacerOptions, Tagger } from './options';
 import { SingleReplacer, SingleReplacerClass } from './singleReplacer';
@@ -23,14 +23,14 @@ export class VinylReplacer extends Transform {
     this.singleOptions = this.createSingleOptions(options);
   }
 
-  public _transform(file: File, enc: BufferEncoding, next: TransformCallback): void {
+  public _transform(file: File, _enc: BufferEncoding, next: TransformCallback): void {
     const singleReplacer = this.createSingleReplacer(file);
     if (file.isStream()) {
       file.contents = file.contents.pipe(singleReplacer);
       next(null, file);
     } else {
       singleReplacer.end(file.contents, undefined);
-      const bl = new BufferList((err: Error | null, buffer: Buffer) => {
+      const bl = new BufferListStream((err: Error | null, buffer: Buffer) => {
         if (err) {
           next(err);
           return;

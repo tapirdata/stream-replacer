@@ -1,11 +1,11 @@
-import { expect } from 'chai';
+import fs from 'fs';
+import path from 'path';
 import assert from 'assert';
-import * as fs from 'fs';
-import * as _ from 'lodash';
-import * as path from 'path';
-import * as File from 'vinyl';
-import * as vinylFs from 'vinyl-fs';
+import File from 'vinyl';
+import vinylFs from 'vinyl-fs';
 import vinylTapper from 'vinyl-tapper';
+import _ from 'lodash';
+import { expect } from 'chai';
 
 import streamReplacer from '../src';
 import { Done } from '../src/options';

@@ -1,5 +1,5 @@
 import { TransformOptions } from 'stream';
-import * as File from 'vinyl';
+import File from 'vinyl';
 
 export type Done = (err: Error | null, val?: unknown) => void;
 export type Tagger = (file: File) => string;

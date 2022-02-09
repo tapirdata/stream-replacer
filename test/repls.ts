@@ -1,4 +1,5 @@
-import * as File from 'vinyl';
+import File from 'vinyl';
+
 import { Done, Optioner, ReplacerOptions, Substitute, SubstituteResult } from '../src/options';
 
 export interface Repl {

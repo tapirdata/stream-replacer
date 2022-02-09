@@ -1,11 +1,11 @@
+import fs from 'fs';
+import path from 'path';
 import assert from 'assert';
-import { expect } from 'chai';
-import * as fs from 'fs';
-import * as _ from 'lodash';
-import * as path from 'path';
 import vinylTapper from 'vinyl-tapper';
+import _ from 'lodash';
+import { expect } from 'chai';
 
-import streamReplacer, { SingleReplacer, VinylReplacer } from '../src';
+import streamReplacer from '../src';
 import { Done } from '../src/options';
 import repls, { Repl } from './repls';
 
@@ -24,7 +24,7 @@ function makeTests(title: string, options: SingleTestOptions) {
     let replaceError: Error | null = null;
 
     before((done: Done) => {
-      let replacer: SingleReplacer | VinylReplacer;
+      let replacer;
       try {
         assert(repl.substitute != null);
         replacer = streamReplacer({
@@ -47,17 +47,9 @@ function makeTests(title: string, options: SingleTestOptions) {
         provideBuffer: true,
       });
       tapper.on('tap', (buffer: Buffer) => {
-        /*
-        console.log(
-          "tapper: buffer=",
-          buffer,
-          buffer && buffer.toString("utf8")
-        );
-        */
         destBuffer = buffer;
       });
 
-      console.log('srcPath=', srcPath);
       fs.createReadStream(srcPath)
         .pipe(replacer)
         .on('error', (err: Error | null) => {

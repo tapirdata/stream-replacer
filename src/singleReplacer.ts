@@ -45,23 +45,12 @@ export class SingleReplacer extends Transform {
     }
     let result: SubstituteResult | undefined = undefined;
     result = substitute(match, this.tag, (err: Error | null, replacement: unknown) => {
-      /*
-        console.log(
-          "_substutute cb: err=",
-          err,
-          "replacement=",
-          replacement,
-          "match=",
-          match
-        );
-        */
       if (result !== undefined) {
         next(new Error('callback used after sync return'));
       } else {
         next(err, replacement);
       }
     });
-    // console.log("_substutute result=", result);
     if (typeof result === 'string' || result === null) {
       next(null, result);
       return;
@@ -73,11 +62,6 @@ export class SingleReplacer extends Transform {
     }
   }
 
-  ____push(chunk: unknown): boolean {
-    console.log('push: chunk=', chunk);
-    return super.push(chunk);
-  }
-
   protected forward(lwm: number, next: TransformCallback): void {
     const { hoard } = this;
     if (hoard.length > lwm) {
@@ -85,13 +69,11 @@ export class SingleReplacer extends Transform {
       const match = pattern && pattern.exec(hoard);
       if (match != null) {
         this._substitute(match, (err, replacement) => {
-          // console.log("forward cb: err=", err, "replacement=", replacement);
           if (err) {
             next(err);
             return;
           }
           const matchLength = match[0].length;
-          // console.log("forward cb: matchLength=", matchLength, "hoard=", hoard);
           if (replacement != null) {
             this.push(hoard.substr(0, match.index));
             this.push(replacement);
