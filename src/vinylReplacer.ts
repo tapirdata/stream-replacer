@@ -1,59 +1,61 @@
-import BufferList = require("bl")
-import * as _ from "lodash"
-import { Transform } from "stream"
-import * as File from "vinyl"
+import BufferList = require('bl');
+import * as _ from 'lodash';
+import { Transform, TransformCallback } from 'stream';
+import * as File from 'vinyl';
 
-import { Cb, ReplacerOptions, Tagger } from "./options"
-import { SingleReplacer } from "./singleReplacer"
+import { Optioner, ReplacerOptions, Tagger } from './options';
+import { SingleReplacer, SingleReplacerClass } from './singleReplacer';
 
 export class VinylReplacer extends Transform {
+  protected tagger: Tagger;
+  protected optioner?: Optioner;
+  protected singleOptions: ReplacerOptions;
 
-  protected tagger: Tagger
-  protected optioner?: (file: File) => any
-  protected singleOptions: ReplacerOptions
+  getSingleClass(): SingleReplacerClass {
+    return SingleReplacer;
+  }
 
   constructor(options: ReplacerOptions) {
-    super({objectMode: true})
-    options = options || {}
-    this.tagger = options.tagger || ((file) => file.path)
-    this.optioner = options.optioner
-    this.singleOptions = this.createSingleOptions(options)
+    super({ objectMode: true });
+    options = options || {};
+    this.tagger = options.tagger || ((file) => file.path);
+    this.optioner = options.optioner;
+    this.singleOptions = this.createSingleOptions(options);
   }
 
-  public _transform(file: File, enc: string, next: Cb) {
-    const singleReplacer = this.createSingleReplacer(file)
+  public _transform(file: File, enc: BufferEncoding, next: TransformCallback): void {
+    const singleReplacer = this.createSingleReplacer(file);
     if (file.isStream()) {
-      file.contents = file.contents.pipe(singleReplacer)
-      next(null, file)
+      file.contents = file.contents.pipe(singleReplacer);
+      next(null, file);
     } else {
-      singleReplacer.end(file.contents, null)
-      const bl = new BufferList((err: any, buffer: Buffer) => {
+      singleReplacer.end(file.contents, undefined);
+      const bl = new BufferList((err: Error | null, buffer: Buffer) => {
         if (err) {
-          next(err)
-          return
+          next(err);
+          return;
         }
-        file.contents = buffer
-        next(null, file)
-      })
-      singleReplacer.pipe(bl)
+        file.contents = buffer;
+        next(null, file);
+      });
+      singleReplacer.pipe(bl);
     }
   }
-  protected createSingleOptions(options: ReplacerOptions) {
-    return _.pick(options, (this.constructor as any).SingleClass.optionNames)
+  protected createSingleOptions(options: ReplacerOptions): ReplacerOptions {
+    const SingleClass = this.getSingleClass();
+    return _.pick(options, SingleClass.optionNames);
   }
 
-  protected createSingleReplacer(file: File) {
-    const tag = this.tagger(file)
-    let options = this.singleOptions
+  protected createSingleReplacer(file: File): SingleReplacer {
+    const tag = this.tagger(file);
+    let options = this.singleOptions;
     if (this.optioner) {
-      const extraOptions = this.optioner(file)
+      const extraOptions = this.optioner(file);
       if (extraOptions != null) {
-        options = _.merge({}, options, extraOptions)
+        options = _.merge({}, options, extraOptions);
       }
     }
-    return new (this.constructor as any).SingleClass(tag, options)
+    const SingleClass = this.getSingleClass();
+    return new SingleClass(tag, options);
   }
-
 }
-
-(VinylReplacer as any).SingleClass = SingleReplacer

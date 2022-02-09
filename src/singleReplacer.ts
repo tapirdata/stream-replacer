@@ -1,100 +1,126 @@
-import * as assert from "assert"
-import { Transform } from "stream"
+import assert from 'assert';
+import { Transform, TransformCallback } from 'stream';
 
-import { Cb, ReplacerOptions, Substitute } from "./options"
+import { ReplacerOptions, Substitute, SubstituteResult } from './options';
 
 export class SingleReplacer extends Transform {
-
-  protected tag: string
-  protected pattern?: RegExp
-  protected substitute?: Substitute
-  protected searchLwm: number
-  protected hoard: string
+  protected tag: string;
+  protected pattern?: RegExp;
+  protected substitute?: Substitute;
+  protected searchLwm: number;
+  protected hoard: string;
 
   constructor(tag: string | ReplacerOptions, options?: ReplacerOptions) {
-    super(options)
-    if (typeof tag === "object") {
-      options = tag as ReplacerOptions
-      tag = options.tag as string
+    super(options);
+    if (typeof tag === 'object') {
+      options = tag;
+      tag = options.tag as string;
     } else {
-      options = options || {}
+      options = options || {};
     }
-    this.tag = tag as string
+    this.tag = tag;
     if (options.pattern != null) {
-      assert(options.pattern instanceof RegExp, "pattern must be a RegExp")
-      assert(typeof options.substitute === "function", "substitute must be a function")
+      assert(options.pattern instanceof RegExp, 'pattern must be a RegExp');
+      assert(typeof options.substitute === 'function', 'substitute must be a function');
     }
-    this.pattern = options.pattern
-    this.substitute = options.substitute
-    this.searchLwm = options.searchLwm || 1024
-    this.hoard = ""
+    this.pattern = options.pattern;
+    this.substitute = options.substitute;
+    this.searchLwm = options.searchLwm || 1024;
+    this.hoard = '';
   }
 
-  public _transform(chunk: Buffer, enc: string, next: Cb) {
+  public _transform(chunk: Buffer, enc: string, next: TransformCallback): void {
     if (this.pattern != null) {
-      this.hoard = this.hoard + String(chunk)
-      this.forward(this.searchLwm, next)
+      this.hoard = this.hoard + String(chunk);
+      this.forward(this.searchLwm, next);
     } else {
-      next(null, chunk)
+      next(null, chunk);
     }
   }
 
-  protected _substitute(match: RegExp, done: Cb) {
-    let result: any
-    result = (this.substitute as Substitute)(match, this.tag, (err: any, replacement: any) => {
+  protected _substitute(match: RegExpExecArray, next: TransformCallback): void {
+    const { substitute } = this;
+    if (substitute == null) {
+      return;
+    }
+    let result: SubstituteResult | undefined = undefined;
+    result = substitute(match, this.tag, (err: Error | null, replacement: unknown) => {
+      /*
+        console.log(
+          "_substutute cb: err=",
+          err,
+          "replacement=",
+          replacement,
+          "match=",
+          match
+        );
+        */
       if (result !== undefined) {
-        done(new Error("callback used after sync return"))
+        next(new Error('callback used after sync return'));
       } else {
-        done(err, replacement)
+        next(err, replacement);
       }
-    })
-    if (typeof result === "string" || result === null) {
-      done(null, result)
-      return
-    }
-    if (typeof result === "object" && typeof result.then === "function") {
+    });
+    // console.log("_substutute result=", result);
+    if (typeof result === 'string' || result === null) {
+      next(null, result);
+      return;
+    } else if (result) {
       result.then(
-        (replacement: any) => done(null, replacement),
-        (err: any) => done(err),
-      )
+        (replacement: string | null) => next(null, replacement),
+        (err: Error) => next(err),
+      );
     }
   }
 
-  protected forward(lwm: number, done: Cb) {
-    const { hoard } = this
+  ____push(chunk: unknown): boolean {
+    console.log('push: chunk=', chunk);
+    return super.push(chunk);
+  }
+
+  protected forward(lwm: number, next: TransformCallback): void {
+    const { hoard } = this;
     if (hoard.length > lwm) {
-      const match: any = (this.pattern as RegExp).exec(hoard)
+      const { pattern } = this;
+      const match = pattern && pattern.exec(hoard);
       if (match != null) {
         this._substitute(match, (err, replacement) => {
+          // console.log("forward cb: err=", err, "replacement=", replacement);
           if (err) {
-            done(err)
-            return
+            next(err);
+            return;
           }
-          const matchLength = match[0].length
+          const matchLength = match[0].length;
+          // console.log("forward cb: matchLength=", matchLength, "hoard=", hoard);
           if (replacement != null) {
-            this.push(hoard.substr(0, match.index))
-            this.push(replacement)
+            this.push(hoard.substr(0, match.index));
+            this.push(replacement);
           } else {
-            this.push(hoard.substr(0, match.index + matchLength))
+            this.push(hoard.substr(0, match.index + matchLength));
           }
-          this.hoard = hoard.slice(match.index + matchLength)
+          this.hoard = hoard.slice(match.index + matchLength);
           setImmediate(() => {
-            return this.forward(lwm, done)
-          })
-        })
-        return
+            return this.forward(lwm, next);
+          });
+        });
+        return;
       }
       // no match
-      const fwdIndex = hoard.length - lwm
-      this.push(hoard.slice(0, fwdIndex))
-      this.hoard = hoard.slice(fwdIndex)
+      const fwdIndex = hoard.length - lwm;
+      this.push(hoard.slice(0, fwdIndex));
+      this.hoard = hoard.slice(fwdIndex);
     }
-    done()
+    next(null);
   }
 
-  _flush(next: Cb) {
-    return this.forward(0, next)
+  _flush(next: TransformCallback): void {
+    return this.forward(0, next);
   }
+
+  static optionNames = ['pattern', 'substitute'];
 }
 
-(SingleReplacer as any).optionNames = ["pattern", "substitute"]
+export interface SingleReplacerClass {
+  new (tag: string | ReplacerOptions, options: ReplacerOptions): SingleReplacer;
+  optionNames: string[];
+}

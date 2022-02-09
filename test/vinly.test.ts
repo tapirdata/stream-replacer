@@ -1,163 +1,160 @@
-import { expect } from "chai"
-import * as fs from "fs"
-import * as _ from "lodash"
-import * as path from "path"
-import * as File from  "vinyl"
-import * as vinylFs from "vinyl-fs"
-import vinylTapper from "vinyl-tapper"
+import { expect } from 'chai';
+import assert from 'assert';
+import * as fs from 'fs';
+import * as _ from 'lodash';
+import * as path from 'path';
+import * as File from 'vinyl';
+import * as vinylFs from 'vinyl-fs';
+import vinylTapper from 'vinyl-tapper';
 
-import streamReplacer from "../src"
-import { Cb } from "../src/options"
-import * as repls from "./repls"
+import streamReplacer from '../src';
+import { Done } from '../src/options';
+import repls from './repls';
 
-const fileCount = 2
+const fileCount = 2;
 
-function makeTests(title: string, options: any) {
+export interface MultiTestOptions {
+  replName: string;
+  useBuffer: boolean;
+}
 
+interface TapResult {
+  file?: File;
+  buffer?: Buffer;
+}
+
+function makeTests(title: string, options: MultiTestOptions) {
   describe(title, () => {
+    const tapResults: { [key: string]: TapResult } = {};
+    const replaceCounts: { [key: string]: number } = {};
+    const repl = repls[options.replName];
 
-    const tapResults: {[key: string]: any } = {}
-    const replaceCounts: {[key: string]: number } = {}
-    const repl = (repls as any)[options.replName]
-
-    before((done: Cb) => {
-
+    before((done: Done) => {
       const replacer = streamReplacer({
-        tagger(file) { return file.relative },
+        tagger(file) {
+          return file.relative;
+        },
         pattern: repl.pattern,
-        substitute(match: any, tag: string, done1: Cb) {
-          replaceCounts[tag] = (replaceCounts[tag] || 0) + 1
-          return repl.substitute(match, tag, done1)
+        substitute(match: RegExpExecArray, tag: string, done1: Done) {
+          const { substitute: realSubstitute } = repl;
+          assert(realSubstitute);
+          replaceCounts[tag] = (replaceCounts[tag] || 0) + 1;
+          return realSubstitute(match, tag, done1);
         },
         optioner: repl.optioner,
-      })
+      });
 
       const tapper = vinylTapper({
         provideBuffer: true,
         terminate: true,
-      })
-      tapper.on("tap", (file: File, buffer: Buffer) => {
+      });
+      tapper.on('tap', (file: File, buffer: Buffer) => {
         tapResults[file.relative] = {
           file,
           buffer,
-        }
-      })
+        };
+      });
 
-      const well = vinylFs.src("fixtures/src/**/*.*", {
+      const well = vinylFs.src('fixtures/src/**/*.*', {
         cwd: __dirname,
         buffer: options.useBuffer,
-      },
-      )
-      return well
-        .pipe(replacer)
-        .pipe(tapper)
-        .on("end", done)
-    })
+      });
+      return well.pipe(replacer).pipe(tapper).on('end', done);
+    });
 
-    it("should pass all files", () => expect(_.keys(tapResults)).to.have.length(fileCount),
-    )
+    it('should pass all files', () => expect(_.keys(tapResults)).to.have.length(fileCount));
 
-    it("should pass file types unmodified", () => {
+    it('should pass file types unmodified', () => {
       for (const srcRelative of Object.keys(tapResults)) {
-        const {file: destFile, buffer: destBuffer} = tapResults[srcRelative]
-        expect(destFile.isBuffer()).to.be.equal(options.useBuffer)
+        const { file: destFile } = tapResults[srcRelative];
+        assert(destFile);
+        expect(destFile.isBuffer()).to.be.equal(options.useBuffer);
       }
-    })
+    });
 
-    if (repl.expectedCounts) {
-      it("should find it the correct number of times", () => {
-        for (const tag of Object.keys(repl.expectedCounts)) {
-          const expectedCount = repl.expectedCounts[tag]
-          expect(replaceCounts[tag] || 0).to.be.equal(expectedCount)
+    const { expectedCounts } = repl;
+    if (expectedCounts != null) {
+      it('should find it the correct number of times', () => {
+        for (const tag of Object.keys(expectedCounts)) {
+          const expectedCount = expectedCounts[tag];
+          expect(replaceCounts[tag] || 0).to.be.equal(expectedCount);
         }
-      })
+      });
     }
 
-    return it("should replace contents in all files", (done: Cb) => {
-      let restCount = fileCount
+    return it('should replace contents in all files', (done: Done) => {
+      let restCount = fileCount;
       for (const srcRelative of Object.keys(tapResults)) {
-        const {file: destFile, buffer: destBuffer} = tapResults[srcRelative]
-        const expPath = path.join(__dirname, "fixtures", repl.expDir, srcRelative)
+        const { buffer: destBuffer } = tapResults[srcRelative];
+        assert(destBuffer);
+        const expPath = path.join(__dirname, 'fixtures', repl.expDir, srcRelative);
         fs.readFile(expPath, (err, expBuffer) => {
-          expect(destBuffer.length).to.be.equal(expBuffer.length)
-          expect(destBuffer.toString("utf8")).to.be.equal(expBuffer.toString("utf8"))
+          expect(destBuffer.length).to.be.equal(expBuffer.length);
+          expect(destBuffer.toString('utf8')).to.be.equal(expBuffer.toString('utf8'));
           if (--restCount === 0) {
-            done()
+            done(null);
           }
-        })
+        });
       }
-    })
-  })
+    });
+  });
 }
 
-describe("stream-replacer for vinly-stream", function() {
+describe('stream-replacer for vinly-stream', function () {
+  this.timeout(10000);
 
-  this.timeout(10000)
-
-  makeTests("with buffer-files, noop", {
+  makeTests('with buffer-files, noop', {
     useBuffer: true,
-    replName: "noop",
-  },
-  )
+    replName: 'noop',
+  });
 
-  makeTests("with stream-files, noop", {
+  makeTests('with stream-files, noop', {
     useBuffer: false,
-    replName: "noop",
-  },
-  )
+    replName: 'noop',
+  });
 
-  makeTests("with buffer-files, simple replace", {
+  makeTests('with buffer-files, simple replace', {
     useBuffer: true,
-    replName: "simple",
-  },
-  )
+    replName: 'simple',
+  });
 
-  makeTests("with stream-files, simple replace", {
+  makeTests('with stream-files, simple replace', {
     useBuffer: false,
-    replName: "simple",
-  },
-  )
+    replName: 'simple',
+  });
 
-  makeTests("with buffer-files, search only", {
+  makeTests('with buffer-files, search only', {
     useBuffer: true,
-    replName: "search",
-  },
-  )
+    replName: 'search',
+  });
 
-  makeTests("with stream-files, search only", {
+  makeTests('with stream-files, search only', {
     useBuffer: false,
-    replName: "search",
-  },
-  )
+    replName: 'search',
+  });
 
-  makeTests("with buffer-files, simple replace, use optioner", {
+  makeTests('with buffer-files, simple replace, use optioner', {
     useBuffer: true,
-    replName: "simpleOptioner",
-  },
-  )
+    replName: 'simpleOptioner',
+  });
 
-  makeTests("with stream-files, simple replace, use optioner", {
+  makeTests('with stream-files, simple replace, use optioner', {
     useBuffer: false,
-    replName: "simpleOptioner",
-  },
-  )
+    replName: 'simpleOptioner',
+  });
 
-  makeTests("with buffer-files, search only", {
+  makeTests('with buffer-files, search only', {
     useBuffer: true,
-    replName: "search",
-  },
-  )
+    replName: 'search',
+  });
 
-  makeTests("with buffer-files, capitalize replace", {
+  makeTests('with buffer-files, capitalize replace', {
     useBuffer: true,
-    replName: "cap",
-  },
-  )
+    replName: 'cap',
+  });
 
-  makeTests("with stream-files, capitalize replace", {
+  makeTests('with stream-files, capitalize replace', {
     useBuffer: false,
-    replName: "cap",
-  },
-  )
-},
-)
+    replName: 'cap',
+  });
+});

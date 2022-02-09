@@ -1,22 +1,18 @@
-import { ReplacerOptions } from "./options"
-import { SingleReplacer } from "./singleReplacer"
-import { VinylReplacer } from "./vinylReplacer"
+import { ReplacerOptions } from './options';
+import { SingleReplacer } from './singleReplacer';
+import { VinylReplacer } from './vinylReplacer';
 
 export interface Factory {
-  (options: ReplacerOptions): SingleReplacer | VinylReplacer,
-  SingleReplacer: typeof SingleReplacer
-  VinylReplacer: typeof VinylReplacer
+  (options: ReplacerOptions): SingleReplacer | VinylReplacer;
 }
 
-const factory = ((options) => {
+const factory: Factory = (options: ReplacerOptions) => {
   if (options && options.single) {
-    return new SingleReplacer(options)
+    return new SingleReplacer(options);
   } else {
-    return new VinylReplacer(options)
+    return new VinylReplacer(options);
   }
-}) as Factory
+};
 
-factory.SingleReplacer = SingleReplacer // legaxy
-factory.VinylReplacer = VinylReplacer // legaxy
-export default factory
-export { ReplacerOptions, SingleReplacer, VinylReplacer }
+export default factory;
+export { ReplacerOptions, SingleReplacer, VinylReplacer };
