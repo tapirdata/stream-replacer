@@ -1,6 +1,6 @@
 {
   "name": "stream-replacer",
-  "version": "1.4.3",
+  "version": "1.4.4",
   "description": "A through-stream that replaces by a RegExp and an async replace function",
   "main": "./lib",
   "types": "./lib/index.d.ts",
